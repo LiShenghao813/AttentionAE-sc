@@ -1,2 +1,2 @@
 # AttentionAE-sc
-A attention-based clustering methods for scRNA-seq data
+Attention-based integrated method for clustering scRNA-seq data
