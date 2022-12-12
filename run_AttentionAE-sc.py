@@ -51,6 +51,7 @@ if __name__ == "__main__":
     
         asw, ari, nmi, pred_label, _, _ = clustering(pretrain_model, Zscore_data, rawData, celltype, adj, r_adj, size_factor, device, args)
         print("Final ASW %.3f, ARI %.3f, NMI %.3f"% (asw, ari, nmi))
+        # output predicted labels
         # np.savetxt('./results/%s_predicted_label.csv'%(args.name),pred_label)
     #down-sampling input
     else:
