@@ -12,21 +12,29 @@ import numpy as np
 from collections import Counter
 import torch
 import random
+import matplotlib.pyplot as plt
+import umap.umap_ as umap
+from sklearn.metrics import silhouette_score, adjusted_rand_score, normalized_mutual_info_score
 
 #constructing the cell-cell graph
 def adata_knn(adata, method, n_neighbors, metric):
+    if adata.shape[0] >=10000:
+        scanpy.pp.pca(adata, n_comps=50)
+        n_pcs = 50
+    else:
+        n_pcs=0
     if method == 'umap':
-        scanpy.pp.neighbors(adata, method = method, n_neighbors= n_neighbors, metric=metric, n_pcs=0)
+        scanpy.pp.neighbors(adata, method = method, n_neighbors= n_neighbors, metric=metric, n_pcs=n_pcs)
         r_adj = adata.obsp['distances']
         adj = adata.obsp['connectivities']
     elif method == 'gauss':
-        scanpy.pp.neighbors(adata, knn=False, method = 'gauss', metric=metric, n_pcs=0)
+        scanpy.pp.neighbors(adata, knn=False, method = 'gauss', metric=metric, n_pcs=n_pcs)
         r_adj = adata.obsp['distances']
         adj = adata.obsp['connectivities']
     return adj, r_adj
 
 # To load gene expression data file into the (pre-)train function.
-def load_data(dataPath, args, knn_method='gauss', metric='cosine', dropout=0):
+def load_data(dataPath, args, knn_method='gauss', metric='cosine', dropout=0, preprocessing_sc=True):
     adata = ad.read(dataPath + '.h5ad')    
     scanpy.pp.filter_cells(adata, min_genes=1)
     scanpy.pp.filter_genes(adata, min_cells=1)
@@ -41,15 +49,15 @@ def load_data(dataPath, args, knn_method='gauss', metric='cosine', dropout=0):
     adata = adata[:, adata.var['highly_variable']]
     dataMat = adata.X
     rawData = adata.raw[:, adata.raw.var['highly_variable']].X
-    celltype = adata.obs['celltype']
+    
     if dropout !=0:
         dataMat, rawData = random_mask(dataMat, rawData, dropout)    
         adata.X = dataMat
     # Construct graph
-
     adj, r_adj = adata_knn(adata, method = knn_method, n_neighbors = 0, metric=metric)
-    
-    return adata, rawData, dataMat, celltype, adj, r_adj
+    return adata, rawData, dataMat, adj, r_adj
+   
+
 
 # using Leiden algorithm to initialize the clustering centers.
 def use_Leiden(features, n_neighbors=20, resolution=1):
@@ -152,6 +160,32 @@ def dist_2_label(p):
     _, label = torch.max(p, dim=1)
     return label.data.cpu().numpy()
 
+def umap_visual(data, title=None,  save_path=None, label=None):
+    reducer = umap.UMAP(random_state=4132231)
+    embedding = reducer.fit_transform(data)
+    n_lables = len(set(label)) + 1
+    mean_silhouette_score = silhouette_score(data, label)
+    # ARI = calcu_ARI(label, true_label)
+    # NMI = normalized_mutual_info_score(true_label, label)
+    xlim_l = int(embedding[:, 0].min()) - 2
+    xlim_r = int(embedding[:, 0].max()) + 2
+    ylim_d = int(embedding[:, 1].min()) - 2
+    ylim_u = int(embedding[:, 1].max()) + 2
+    plt.figure(figsize = (6,4), dpi=200)
+    plt.scatter(embedding[:, 0], embedding[:, 1], c=label, cmap='Spectral', s=5)
+    plt.gca().set_aspect('equal', 'datalim')
+    plt.colorbar(boundaries=np.arange(n_lables)).set_ticks(np.arange(n_lables))
+    plt.xlim((xlim_l, xlim_r))
+    plt.ylim((ylim_d, ylim_u))
+    plt.title('UMAP projection of the {0}'.format(title))
+    plt.text(xlim_r-2, ylim_d+1.5, "ASW=%.3f"%(mean_silhouette_score),
+              ha="right",)
+    if save_path is not None:
+        plt.savefig(save_path, bbox_inches='tight')
+    else:
+        plt.show()
+    plt.close()
+    
 # def cluster_acc(y_true, y_pred):
 #     """
 #     Calculate clustering accuracy. Require scikit-learn installed
