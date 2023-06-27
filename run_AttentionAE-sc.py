@@ -76,7 +76,6 @@ if __name__ == "__main__":
         print(args)
         init_model = AttentionAE(256, 64, 64, 256, n_input=args.n_input, n_z=args.n_z, device=device)
         pretrain_model, _ = train(init_model, Zscore_data, rawData, adj, r_adj, size_factor, device, args)
-    
         asw, pred_label, _, model, _ = clustering(pretrain_model, Zscore_data, rawData, celltype, 
                                                   adj, r_adj, size_factor, device, args)
         if celltype is not None:
@@ -106,6 +105,11 @@ if __name__ == "__main__":
             np.savetxt('./pred_label/%s.csv'%(args.name),pred_label)
         if args.save_model_para is True:
             torch.save(model.state_dict(), './model_save/%s.pkl'%(args.name))
+        asw, ari, nmi, pred_label, _, _ = clustering(pretrain_model, Zscore_data, rawData, celltype, adj, r_adj, size_factor, device, args)
+        print("Final ASW %.3f, ARI %.3f, NMI %.3f"% (asw, ari, nmi))
+        # output predicted labels
+        # np.savetxt('./results/%s_predicted_label.csv'%(args.name),pred_label)
+
     #down-sampling input
     else:
         new_adata = utils.random_downsimpling(adata, args.max_num_cell)
