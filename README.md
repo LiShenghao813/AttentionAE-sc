@@ -13,7 +13,7 @@ torchvision==1.12.0
 
 torchaudio==0.11.0
 
-sipy==1.6.2
+scipy==1.6.2
 
 scanpy==1.8.2
 
@@ -21,7 +21,7 @@ leidenalg==0.8.10
 
 
 
-For applying AttentionAE-sc, the concenient way is  run ["run_AttentionAE-sc.py"](https://github.com/LiShenghao813/AttentionAE-sc/blob/main/run_AttentionAE-sc.py).
+For applying AttentionAE-sc, the convenient way is  run ["run_AttentionAE-sc.py"](https://github.com/LiShenghao813/AttentionAE-sc/blob/main/run_AttentionAE-sc.py).
 
 
 
@@ -30,6 +30,7 @@ The preprocessing of two kinds of [datasets (.h5, .csv)](https://github.com/LiSh
 
 
 Other datasets: the breast cancer single-cell dataset used in our research can obtain from ["GSE173634"](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE173634).
+
 
 another arguments:
 
@@ -41,4 +42,4 @@ another arguments:
     
     "-save_embedding":default: True. Description: To choose whether saves the cell embedding to the dict "./embedding"
     
-    "-max_num_cell":  default: 4000. Description: Conduct random sampling training on large datasets. 4,000 is the maximum cells that a GPU owning 8 GB memory can handle. In the experiment, AttentionAE-sc still performs well when 1/10 cells is sampled for model training. 
+    "-max_num_cell":  default: 4000. Description: Conduct random sampling training on large datasets. 4,000 is the maximum cells that a GPU (8RAM) can handle. In the experiment, AttentionAE-sc still performs well when 1/10 cells is sampled for model training. 
