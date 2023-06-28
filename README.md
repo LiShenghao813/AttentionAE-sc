@@ -25,7 +25,7 @@ For applying AttentionAE-sc, the concenient way is  run ["run_AttentionAE-sc.py"
 
 
 
-The preprocessing of two kinds of datasets (.h5, .csv) is provided by the ["preprocessing_h5.py"](https://github.com/LiShenghao813/AttentionAE-sc/blob/main/preprocessing_h5.py) and ["preprocessing_baron.py"](https://github.com/LiShenghao813/AttentionAE-sc/blob/main/preprocessing_baron.py). Then, the corresponding ".h5ad" files are output in the ["./Data/AnnData"](https://github.com/LiShenghao813/AttentionAE-sc/tree/main/Data/AnnData), where is the default for model input. If you want to analzye another scRNA-seq datasets, please copy your ".h5ad" files to here and set "-name" to the file name.
+The preprocessing of two kinds of [datasets (.h5, .csv)](https://github.com/LiShenghao813/AttentionAE-sc/tree/main/Data) is provided by the ["preprocessing_h5.py"](https://github.com/LiShenghao813/AttentionAE-sc/blob/main/preprocessing_h5.py) and ["preprocessing_baron.py"](https://github.com/LiShenghao813/AttentionAE-sc/blob/main/preprocessing_baron.py). Then, the corresponding ".h5ad" files are output in the ["./Data/AnnData"](https://github.com/LiShenghao813/AttentionAE-sc/tree/main/Data/AnnData), where is the default for model input. If you want to analzye another scRNA-seq datasets, please copy your ".h5ad" files to here and set "-name" to the file name.
 
 
 
