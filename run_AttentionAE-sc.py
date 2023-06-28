@@ -26,7 +26,7 @@ if __name__ == "__main__":
                         help='epoch of train stage, default:200')
     parser.add_argument('--clustering_epoch', type=int, default=100,
                         help='epoch of clustering stage, default:100')
-    parser.add_argument('--name', type=str, default='BRCA',
+    parser.add_argument('--name', type=str, default='Muraro',
                         help='name of input file(a h5ad file: Contains the raw count matrix "X",)')
     parser.add_argument('--celltype', type=str, default='known',
                         help='the true labels of datasets are placed in adata.obs["celltype"]')
@@ -56,12 +56,7 @@ if __name__ == "__main__":
     else:
         umap_save_path = [None, None]
         
-    if args.name == "BRCA":
-        adata, rawData, dataset, adj, r_adj = utils.load_data('D:/data/BRCA/MCF7_KPL1',args=args)
-        dataset = dataset.toarray()
-        rawData = rawData.toarray()
-    else:
-        adata, rawData, dataset, adj, r_adj = utils.load_data('./Data/AnnData/{}'.format(args.name),args=args)
+    adata, rawData, dataset, adj, r_adj = utils.load_data('./Data/AnnData/{}'.format(args.name),args=args)
     
     if args.celltype == "known":  
         celltype = adata.obs['celltype'].tolist()
