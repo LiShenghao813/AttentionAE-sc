@@ -22,3 +22,4 @@ another arguments:
     "-save_embedding":default: True. Description: To choose whether saves the cell embedding to the dict "./embedding"
     "-max_num_cell":  default: 4000. Description: Conduct random sampling training on large datasets. 4,000 is the maximum cells that a GPU owning 8 GB memory can handle. In the experiment, AttentionAE-sc still performs well when 1/10 cells is sampled for model training. 
 
+Other datasets: the breast cancer single-cell dataset used in our research can obtain from ["GSE173634"](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE173634).
