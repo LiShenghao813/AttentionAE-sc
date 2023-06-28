@@ -12,8 +12,9 @@ from loss import ZINBLoss
 import numpy as np
 from sklearn.metrics import silhouette_score, adjusted_rand_score, normalized_mutual_info_score
 import time
+import random 
 
-#random.seed(1)
+random.seed(1)
 
 def train(init_model, Zscore_data, rawData, adj, r_adj, size_factor, device, args):
     start_time = time.time()

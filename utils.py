@@ -180,6 +180,7 @@ def umap_visual(data, title=None,  save_path=None, label=None):
     plt.title('UMAP projection of the {0}'.format(title))
     plt.text(xlim_r-2, ylim_d+1.5, "ASW=%.3f"%(mean_silhouette_score),
               ha="right",)
+    plt.grid(False)
     if save_path is not None:
         plt.savefig(save_path, bbox_inches='tight')
     else:

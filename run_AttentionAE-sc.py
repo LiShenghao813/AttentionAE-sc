@@ -11,7 +11,7 @@ from sklearn import preprocessing
 import random
 import numpy as np
 import utils
-import scipy
+
 from model import AttentionAE
 from train import train, clustering, loss_func
 from sklearn.metrics import silhouette_score, adjusted_rand_score, normalized_mutual_info_score
@@ -30,13 +30,13 @@ if __name__ == "__main__":
                         help='name of input file(a h5ad file: Contains the raw count matrix "X",)')
     parser.add_argument('--celltype', type=str, default='known',
                         help='the true labels of datasets are placed in adata.obs["celltype"]')
-    parser.add_argument('--save_pred_label', type=str, default=False,
+    parser.add_argument('--save_pred_label', type=str, default=True,
                         help='To choose whether saves the pred_label to the dict "./pred_label"')
-    parser.add_argument('--save_model_para', type=str, default=False,
+    parser.add_argument('--save_model_para', type=str, default=True,
                         help='To choose whether saves the model parameters to the dict "./model_save"')
-    parser.add_argument('--save_embedding', type=str, default=False,
+    parser.add_argument('--save_embedding', type=str, default=True,
                         help='To choose whether saves the cell embedding to the dict "./embedding"')
-    parser.add_argument('--save_umap', type=str, default=False,
+    parser.add_argument('--save_umap', type=str, default=True,
                         help='To choose whether saves the visualization to the dict "./umap_figure"')
     parser.add_argument('--max_num_cell', type=int, default=4000,
                         help='''a maximum threshold about the number of cells use in the model building, 
@@ -100,8 +100,7 @@ if __name__ == "__main__":
             np.savetxt('./pred_label/%s.csv'%(args.name),pred_label)
         if args.save_model_para is True:
             torch.save(model.state_dict(), './model_save/%s.pkl'%(args.name))
-        asw, ari, nmi, pred_label, _, _ = clustering(pretrain_model, Zscore_data, rawData, celltype, adj, r_adj, size_factor, device, args)
-        print("Final ASW %.3f, ARI %.3f, NMI %.3f"% (asw, ari, nmi))
+        
         # output predicted labels
         # np.savetxt('./results/%s_predicted_label.csv'%(args.name),pred_label)
 
