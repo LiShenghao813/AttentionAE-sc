@@ -160,7 +160,7 @@ def dist_2_label(p):
     _, label = torch.max(p, dim=1)
     return label.data.cpu().numpy()
 
-def umap_visual(data, title=None,  save_path=None, label=None):
+def umap_visual(data, title=None, save_path=None, label=None, asw_used=None):
     reducer = umap.UMAP(random_state=4132231)
     embedding = reducer.fit_transform(data)
     n_lables = len(set(label)) + 1
@@ -178,8 +178,9 @@ def umap_visual(data, title=None,  save_path=None, label=None):
     plt.xlim((xlim_l, xlim_r))
     plt.ylim((ylim_d, ylim_u))
     plt.title('UMAP projection of the {0}'.format(title))
-    plt.text(xlim_r-2, ylim_d+1.5, "ASW=%.3f"%(mean_silhouette_score),
-              ha="right",)
+    if asw_used is not None:
+        plt.text(xlim_r-2, ylim_d+1.5, "ASW=%.3f"%(mean_silhouette_score),
+                  ha="right",)
     plt.grid(False)
     if save_path is not None:
         plt.savefig(save_path, bbox_inches='tight')

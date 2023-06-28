@@ -26,7 +26,7 @@ if __name__ == "__main__":
                         help='epoch of train stage, default:200')
     parser.add_argument('--clustering_epoch', type=int, default=100,
                         help='epoch of clustering stage, default:100')
-    parser.add_argument('--name', type=str, default='Muraro',
+    parser.add_argument('--name', type=str, default='Quake_10x_Spleen',
                         help='name of input file(a h5ad file: Contains the raw count matrix "X",)')
     parser.add_argument('--celltype', type=str, default='known',
                         help='the true labels of datasets are placed in adata.obs["celltype"]')
@@ -38,7 +38,7 @@ if __name__ == "__main__":
                         help='To choose whether saves the cell embedding to the dict "./embedding"')
     parser.add_argument('--save_umap', type=str, default=True,
                         help='To choose whether saves the visualization to the dict "./umap_figure"')
-    parser.add_argument('--max_num_cell', type=int, default=4000,
+    parser.add_argument('--max_num_cell', type=int, default=3000,
                         help='''a maximum threshold about the number of cells use in the model building, 
                         4,000 is the maximum cells that a GPU owning 8 GB memory can handle. 
                         More cells will bemploy the down-sampling straegy, 
@@ -88,7 +88,8 @@ if __name__ == "__main__":
                 utils.umap_visual(z.detach().cpu().numpy(), 
                                   label = pred_label, 
                                   title='predicted label', 
-                                  save_path = umap_save_path[0])
+                                  save_path = umap_save_path[0],
+                                  asw_used=True)
                 if args.celltype == "known":  
                     utils.umap_visual(z.detach().cpu().numpy(), 
                                       label = celltype, 
@@ -156,7 +157,8 @@ if __name__ == "__main__":
                 utils.umap_visual(z.detach().cpu().numpy(), 
                                   label = pred_label, 
                                   title='predicted label', 
-                                  save_path = umap_save_path[0])
+                                  save_path = umap_save_path[0],
+                                  asw_used=True)
                 if args.celltype == "known":  
                     utils.umap_visual(z.detach().cpu().numpy(), 
                                       label = celltype, 
