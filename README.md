@@ -5,17 +5,17 @@ run environment:
 
 python==3.8
 
-numpy==1.19.5
-
 pytorch==1.11.0
 
 torchvision==1.12.0
 
 torchaudio==0.11.0
 
+scanpy==1.8.2
+
 scipy==1.6.2
 
-scanpy==1.8.2
+numpy==1.19.5
 
 leidenalg==0.8.10
 
