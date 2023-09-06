@@ -1,5 +1,6 @@
 # AttentionAE-sc
 Attention-based method for clustering scRNA-seq data
+    Two different scRNA-seq clustering strategies are combined through an attention mechanism, that include zero-inflated negative binomial (ZINB)-based methods dealing with the impact of dropout events and graph autoencoder (GAE)-based methods relying on information from neighbors to guide the dimension reduction. Based on an iterative fusion between denoising and topological embeddings, AttentionAE-sc can easily acquire clustering-friendly cell representations that similar cells are closer in the hidden embedding.
 
 ## run environment
 
