@@ -17,24 +17,27 @@ import umap.umap_ as umap
 from sklearn.metrics import silhouette_score, adjusted_rand_score, normalized_mutual_info_score
 
 #constructing the cell-cell graph
-def adata_knn(adata, method, n_neighbors, metric):
+def adata_knn(adata, method, knn, n_neighbors, metric='cosine'):
     if adata.shape[0] >=10000:
         scanpy.pp.pca(adata, n_comps=50)
         n_pcs = 50
     else:
         n_pcs=0
     if method == 'umap':
-        scanpy.pp.neighbors(adata, method = method, n_neighbors= n_neighbors, metric=metric, n_pcs=n_pcs)
+        scanpy.pp.neighbors(adata, method = method, metric=metric, 
+                            knn=knn, n_pcs=n_pcs, n_neighbors=n_neighbors)
         r_adj = adata.obsp['distances']
         adj = adata.obsp['connectivities']
     elif method == 'gauss':
-        scanpy.pp.neighbors(adata, knn=False, method = 'gauss', metric=metric, n_pcs=n_pcs)
+        scanpy.pp.neighbors(adata, method = 'gauss', metric=metric, 
+                            knn=knn, n_pcs=n_pcs, n_neighbors=n_neighbors)
         r_adj = adata.obsp['distances']
         adj = adata.obsp['connectivities']
     return adj, r_adj
 
 # To load gene expression data file into the (pre-)train function.
-def load_data(dataPath, args, knn_method='gauss', metric='cosine', dropout=0, preprocessing_sc=True):
+def load_data(dataPath, args, metric='cosine', 
+              dropout=0, preprocessing_sc=True):
     adata = ad.read(dataPath + '.h5ad')    
     scanpy.pp.filter_cells(adata, min_genes=1)
     scanpy.pp.filter_genes(adata, min_cells=1)
@@ -54,19 +57,17 @@ def load_data(dataPath, args, knn_method='gauss', metric='cosine', dropout=0, pr
         dataMat, rawData = random_mask(dataMat, rawData, dropout)    
         adata.X = dataMat
     # Construct graph
-    adj, r_adj = adata_knn(adata, method = knn_method, n_neighbors = 0, metric=metric)
+    adj, r_adj = adata_knn(adata, method = args.connectivity_methods, knn=args.knn, 
+                           n_neighbors = args.n_neighbors, metric=metric)
     return adata, rawData, dataMat, adj, r_adj
    
 
 
 # using Leiden algorithm to initialize the clustering centers.
-def use_Leiden(features, n_neighbors=20, resolution=1):
+def use_Leiden(features, resolution=1):
     #from https://github.com/eleozzr/desc/blob/master/desc/models/network.py line 241
     adata0=scanpy.AnnData(features)
-    if n_neighbors==0:
-        scanpy.pp.neighbors(adata0, knn=False, method = 'gauss', metric='cosine', n_pcs=0)
-    else:
-        scanpy.pp.neighbors(adata0, n_neighbors=n_neighbors, use_rep="X")
+    scanpy.pp.neighbors(adata0, knn=False, method = 'gauss', metric='cosine', n_pcs=0)
     scanpy.tl.leiden(adata0, resolution=resolution)
     Y_pred_init=adata0.obs['leiden']
     init_pred=np.asarray(Y_pred_init,dtype=int)
@@ -80,7 +81,8 @@ def use_Leiden(features, n_neighbors=20, resolution=1):
 def use_SpectralClustering(data, adj, args):
     #from https://github.com/Philyzh8/scTAG/blob/38ca65d781a20c3c058ac1d4e58f6d17aaf89908/train.py#L30 line 87
     from sklearn.cluster import SpectralClustering
-    Y_pred_init = SpectralClustering(n_clusters=args.n_clusters,affinity="precomputed", assign_labels="discretize",random_state=0).fit_predict(adj)
+    Y_pred_init = SpectralClustering(n_clusters=args.n_clusters,affinity="precomputed", 
+                                     assign_labels="discretize",random_state=0).fit_predict(adj)
     init_pred=np.asarray(Y_pred_init,dtype=int)
     features=pd.DataFrame(data,index=np.arange(0,data.shape[0]))
     Group=pd.Series(init_pred,index=np.arange(0,data.shape[0]),name="Group")

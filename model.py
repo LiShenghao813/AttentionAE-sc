@@ -103,7 +103,7 @@ class AttentionWide(nn.Module):
 # Final model
 class AttentionAE(nn.Module):
     def __init__(self, n_enc_1, n_enc_2, n_dec_1, n_dec_2,
-                 n_input, n_z, device):
+                 n_input, n_z, heads, device):
         super(AttentionAE, self).__init__()
 
         # autoencoder for intra information
@@ -125,8 +125,8 @@ class AttentionAE(nn.Module):
         self.gnn_1 = GNNLayer(n_enc_1, n_enc_2)
         self.gnn_2 = GNNLayer(n_enc_2, n_z)
 
-        self.attn1 = AttentionWide(n_enc_2)
-        self.attn2 = AttentionWide(n_z)
+        self.attn1 = AttentionWide(n_enc_2,heads=heads)
+        self.attn2 = AttentionWide(n_z,heads=heads)
 
 
     def forward(self, x, adj):    

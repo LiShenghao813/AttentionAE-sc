@@ -89,7 +89,7 @@ def clustering(pretrain_model, Zscore_data, rawData, celltype, adj, r_adj, size_
     with torch.no_grad():
         z, _, _, _, _  = model(data,adj)
         
-    cluster_centers, init_label = utils.use_Leiden(z.detach().cpu().numpy(), n_neighbors=0)
+    cluster_centers, init_label = utils.use_Leiden(z.detach().cpu().numpy(), resolution=args.resolution)
     cluster_layer = torch.autograd.Variable((torch.from_numpy(cluster_centers).type(torch.FloatTensor)).to(device),
                            requires_grad=True)
     asw = np.round(silhouette_score(z.detach().cpu().numpy(), init_label), 3)
@@ -159,29 +159,56 @@ if __name__ == "__main__":
     parser.add_argument('--lr', type=float, default=0.001,help='learning rate, default:1e-3')
     parser.add_argument('--n_z', type=int, default=16, 
                         help='the number of dimension of latent vectors for each cell, default:16')
+    parser.add_argument('--n_heads', type=int, default=8, 
+                        help='the number of dattention heads, default:8')
+    parser.add_argument('--n_hvg', type=int, default=2500, 
+                        help='the number of the highly variable genes, default:2500')
     parser.add_argument('--training_epoch', type=int, default=200,
                         help='epoch of train stage, default:200')
     parser.add_argument('--clustering_epoch', type=int, default=100,
                         help='epoch of clustering stage, default:100')
-    parser.add_argument('--name', type=str, default='Muraro',
+    parser.add_argument('--resolution', type=float, default=1.0,
+                        help='''the resolution of Leiden. The smaller the settings to get the more clusters
+                        , advised to 0.1-1.0, default:1.0''')
+    parser.add_argument('--connectivity_methods', type=str, default='gauss',
+                        help='method for constructing the cell connectivity ("gauss" or "umap"), default:gauss')
+    parser.add_argument('--n_neighbors', type=int, default=15,
+                        help='''If True, use a hard threshold to restrict the number of neighbors to n_neighbors, 
+                        that is, consider a knn graph. Otherwise, use a Gaussian Kernel to assign low weights to 
+                        neighbors more distant than the n_neighbors nearest neighbor. default:100''')
+    parser.add_argument('--knn', type=int, default=False,
+                        help='''If True, use a hard threshold to restrict the number of neighbors to n_neighbors, 
+                        that is, consider a knn graph. Otherwise, use a Gaussian Kernel to assign low weights to
+                        neighbors more distant than the n_neighbors nearest neighbor. default:False''')
+    parser.add_argument('--name', type=str, default='Quake_10x_Spleen',
                         help='name of input file(a h5ad file: Contains the raw count matrix "X",)')
+    parser.add_argument('--celltype', type=str, default='known',
+                        help='the true labels of datasets are placed in adata.obs["celltype"]')
+    parser.add_argument('--save_pred_label', type=str, default=True,
+                        help='To choose whether saves the pred_label to the dict "./pred_label"')
+    parser.add_argument('--save_model_para', type=str, default=True,
+                        help='To choose whether saves the model parameters to the dict "./model_save"')
+    parser.add_argument('--save_embedding', type=str, default=True,
+                        help='To choose whether saves the cell embedding to the dict "./embedding"')
+    parser.add_argument('--save_umap', type=str, default=True,
+                        help='To choose whether saves the visualization to the dict "./umap_figure"')
     parser.add_argument('--max_num_cell', type=int, default=4000,
                         help='''a maximum threshold about the number of cells use in the model building, 
-                        4,000 is the maximum cells that a GPU owning 11 GB memory can handle. 
+                        4,000 is the maximum cells that a GPU owning 8 GB memory can handle. 
                         More cells will bemploy the down-sampling straegy, 
                         which has been shown to be equally effective,
                         but it's recommended to process data with less than 24,000 cells at a time''')
-    parser.add_argument('--cuda', type=bool, default=True,
+    parser.add_argument('--cuda', type=bool, default=False,
                         help='use GPU, or else use cpu (setting as "False")')
     args = parser.parse_args()
     args.cuda = torch.cuda.is_available()
     device = torch.device("cuda" if args.cuda else "cpu")
     simplefilter(action='ignore', category=FutureWarning)
     
-    for i in ['Muraro', 'Quake_10x_Bladder', 'Quake_10x_Limb_Muscle', 
-              'Quake_10x_Spleen', 
-              'Quake_Smart-seq2_Diaphragm', 'Quake_Smart-seq2_Limb_Muscle', 'Quake_Smart-seq2_Lung', 'Quake_Smart-seq2_Trachea',
-              'Romanov', 'Pancreas_human1', 'Pancreas_human2', 'Pancreas_human3', 'Pancreas_human4', 'Pancreas_mouse']:
+    for i in ['Muraro', 'Quake_10x_Bladder', 'Quake_10x_Limb_Muscle', 'Quake_10x_Spleen', 
+              'Quake_Smart-seq2_Diaphragm', 'Quake_Smart-seq2_Limb_Muscle', 'Quake_Smart-seq2_Lung', 
+              'Quake_Smart-seq2_Trachea', 'Romanov', 'Pancreas_human1', 'Pancreas_human2',
+              'Pancreas_human3', 'Pancreas_human4', 'Pancreas_mouse']:
         args.name = i
         ASW = []
         ARI = []
@@ -196,7 +223,7 @@ if __name__ == "__main__":
                 
                 args.n_input = dataset.shape[1]
                 print(args)
-                init_model = AttentionAE(256, 64, 64, 256, n_input=args.n_input, n_z=args.n_z, device=device)
+                init_model = AttentionAE(256, 64, 64, 256, n_input=args.n_input, n_z=args.n_z, heads=args.n_heads, device=device)
                 pretrain_model = train(init_model, Zscore_data, rawData, adj, r_adj, size_factor, device, args)
             
                 asw, pred_label, _, _, _ = clustering(pretrain_model, Zscore_data, rawData, celltype, adj, r_adj, size_factor, device, args)
@@ -212,23 +239,36 @@ if __name__ == "__main__":
             #down-sampling input
             else:
                 new_adata = utils.random_downsimpling(adata, args.max_num_cell)
-                new_adj, new_r_adj = utils.adata_knn(new_adata, method = 'gauss', n_neighbors = 0, metric='cosine')
-                new_Zscore_data = preprocessing.scale(new_adata.X)
+                new_adj, new_r_adj = utils.adata_knn(new_adata, method = args.connectivity_methods, 
+                                                     knn=args.knn, n_neighbors=args.n_neighbors)
+                try: 
+                    new_Zscore_data = preprocessing.scale(new_adata.X.toarray())
+                    new_rawData = new_adata.raw[:, adata.raw.var['highly_variable']].X.toarray()
+                except:
+                    new_Zscore_data = preprocessing.scale(new_adata.X)
+                    new_rawData = new_adata.raw[:, adata.raw.var['highly_variable']].X
                 
                 size_factor = new_adata.obs['size_factors'].values
-                Zscore_data = preprocessing.scale(dataset)
-                data = torch.Tensor(Zscore_data).to(device)
-                adj = torch.Tensor(adj).to(device)
-                new_rawData = new_adata.raw[:, adata.raw.var['highly_variable']].X
+                
+                
+                try: 
+                    Zscore_data = preprocessing.scale(dataset.toarray())
+                    
+                except:
+                    Zscore_data = preprocessing.scale(dataset)
+                    
+                
                 new_celltype = new_adata.obs['celltype']
                 args.n_input = dataset.shape[1]
                 print(args)
-                init_model = AttentionAE(256, 64, 64, 256, n_input=args.n_input, n_z=args.n_z, device=device)
+                init_model = AttentionAE(256, 64, 64, 256, n_input=args.n_input, n_z=args.n_z, heads=args.n_heads, device=device)
                 pretrain_model = train(init_model, new_Zscore_data, new_rawData,
                                        new_adj, new_r_adj, size_factor, device, args)
                 _, _, cluster_layer, model, _ = clustering(pretrain_model, new_Zscore_data, new_rawData, 
                                                               new_celltype, new_adj, new_r_adj, size_factor, device, args)
-            
+                
+                data = torch.Tensor(Zscore_data).to(device)
+                adj = torch.Tensor(adj).to(device)
                 with torch.no_grad():
                     z, _, _, _, _  = model(data,adj)
                     _, p = loss_func(z, cluster_layer)
