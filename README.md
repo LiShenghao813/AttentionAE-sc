@@ -43,7 +43,7 @@ argument:
 
     "-connectivity_methods": default: 'gauss'. Description: Method for constructing the cell connectivity ("gauss" or "umap"). 
 
-    "-knn": default: False. Description: If **True**, use a hard threshold to restrict the number of neighbors to n_neighbors, that is, 
+    "-knn": default: False. Description: If True, use a hard threshold to restrict the number of neighbors to n_neighbors, that is, 
                                         consider a knn graph. Otherwise, use a Gaussian Kernel to assign low weights to neighbors more 
                                         distant than the n_neighbors nearest neighbor.
     
