@@ -36,14 +36,15 @@ if __name__ == "__main__":
     parser.add_argument('--connectivity_methods', type=str, default='gauss',
                         help='method for constructing the cell connectivity ("gauss" or "umap"), default:gauss')
     parser.add_argument('--n_neighbors', type=int, default=15,
-                        help='''If True, use a hard threshold to restrict the number of neighbors to n_neighbors, 
-                        that is, consider a knn graph. Otherwise, use a Gaussian Kernel to assign low weights to 
-                        neighbors more distant than the n_neighbors nearest neighbor. default:100''')
+                        help='''The size of local neighborhood (in terms of number of neighboring data points) used 
+                        for manifold approximation. Larger values result in more global views of the manifold, while 
+                        smaller values result in more local data being preserved. In general values should be in the 
+                        range 2 to 100. default:15''')
     parser.add_argument('--knn', type=int, default=False,
                         help='''If True, use a hard threshold to restrict the number of neighbors to n_neighbors, 
                         that is, consider a knn graph. Otherwise, use a Gaussian Kernel to assign low weights to
                         neighbors more distant than the n_neighbors nearest neighbor. default:False''')
-    parser.add_argument('--name', type=str, default='Muraro',
+    parser.add_argument('--name', type=str, default='Quake_10x_Spleen',
                         help='name of input file(a h5ad file: Contains the raw count matrix "X")')
     parser.add_argument('--celltype', type=str, default='known',
                         help='the true labels of datasets are placed in adata.obs["celltype"]')

@@ -10,7 +10,7 @@ import torch.optim.lr_scheduler as lr_scheduler
 import utils
 from loss import ZINBLoss
 import numpy as np
-from sklearn.metrics import silhouette_score, adjusted_rand_score, normalized_mutual_info_score
+from sklearn.metrics import silhouette_score, adjusted_rand_score, normalized_mutual_info_score, davies_bouldin_score
 import time
 import random 
 
@@ -116,6 +116,7 @@ def clustering(pretrain_model, Zscore_data, rawData, celltype, adj, r_adj, size_
         label = utils.dist_2_label(ae_p)
         
         asw = silhouette_score(z.detach().cpu().numpy(), label)
+        db = davies_bouldin_score(z.detach().cpu().numpy(), label)
         # ari = adjusted_rand_score(celltype, label)
         # nmi = normalized_mutual_info_score(celltype, label)
        
@@ -144,7 +145,7 @@ def clustering(pretrain_model, Zscore_data, rawData, celltype, adj, r_adj, size_
     max_mem = torch.cuda.max_memory_allocated(device=device) - start_mem
     print("Finish Clustering! Elapsed time: {:.4f} seconds, Max memory usage: {:.4f} MB".format(elapsed_time, max_mem / 1024 / 1024))
 
-    return asw, last_label, cluster_layer, model, elapsed_time
+    return [asw,db], last_label, cluster_layer, model, elapsed_time
 
 if __name__ == "__main__":
     from warnings import simplefilter 
@@ -213,6 +214,7 @@ if __name__ == "__main__":
         ASW = []
         ARI = []
         NMI = []
+        DB  = []
         adata, rawData, dataset, adj, r_adj = utils.load_data('./Data/AnnData/{}'.format(args.name),args=args)
         celltype = adata.obs['celltype']
         for j in range(5):
@@ -226,10 +228,14 @@ if __name__ == "__main__":
                 init_model = AttentionAE(256, 64, 64, 256, n_input=args.n_input, n_z=args.n_z, heads=args.n_heads, device=device)
                 pretrain_model = train(init_model, Zscore_data, rawData, adj, r_adj, size_factor, device, args)
             
-                asw, pred_label, _, _, _ = clustering(pretrain_model, Zscore_data, rawData, celltype, adj, r_adj, size_factor, device, args)
+                metirc, pred_label, _, _, _ = clustering(pretrain_model, Zscore_data, rawData, celltype, adj, r_adj, size_factor, device, args)
+                
+                asw = metirc[0]
+                db = metirc[1]
                 
                 ari = adjusted_rand_score(celltype, pred_label)
                 nmi = normalized_mutual_info_score(celltype, pred_label)
+                DB.append(db)
                 ASW.append(asw)
                 ARI.append(ari)
                 NMI.append(nmi)            
@@ -284,13 +290,14 @@ if __name__ == "__main__":
             df_ari = pd.DataFrame(ARI,index=range(5), columns=[args.name,])
             df_asw = pd.DataFrame(ASW,index=range(5), columns=[args.name,])
             df_nmi = pd.DataFrame(NMI,index=range(5), columns=[args.name,])
-            
+            df_db = pd.DataFrame(DB,index=range(3), columns=[args.name,])
         else:
             df_ari['%s'%(args.name)] = ARI
             df_asw['%s'%(args.name)] = ASW
             df_nmi['%s'%(args.name)] = NMI
-        
+            df_db['%s'%(args.name)] = DB
         df_ari.to_csv('./results/Leiden_ARI.csv')
         df_asw.to_csv('./results/Leiden_ASW.csv')
         df_nmi.to_csv('./results/Leiden_NMI.csv') 
+        df_db.to_csv('./results/Leiden_DB.csv') 
             #np.savetxt('./results/%s_predicted_label.csv'%(args.name),pred_label)
