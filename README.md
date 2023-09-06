@@ -31,7 +31,7 @@ Other datasets: the breast cancer single-cell dataset used in our research can o
 For applying AttentionAE-sc, the convenient way is  run ["run_AttentionAE-sc.py"](https://github.com/LiShenghao813/AttentionAE-sc/blob/main/run_AttentionAE-sc.py).
 
 Please place the scRNA-seq dataset you want to analyze in the directory ["./Data/AnnData"](https://github.com/LiShenghao813/AttentionAE-sc/tree/main/Data/AnnData), where is the default for model input.
-If you want to calculate the similarity between the predicted clustering resluts and the true cell labels (based on NMI or ARI score), please transmit your true labels into the "adata.obs['celltype']" and setting the argument "-celltype" to True.
+If you want to calculate the similarity between the predicted clustering resluts and the true cell labels (based on NMI or ARI score), please transmit your true labels into the "adata.obs['celltype']" and setting the argument "-celltype" to **True**.
 
 argument:
 
@@ -43,8 +43,10 @@ argument:
 
     "-connectivity_methods": default: 'gauss'. Description: Method for constructing the cell connectivity ("gauss" or "umap"). 
 
-    "-knn": default: False. Description: The number of highly variable genes. In general values should be in the range 500 to 3000. 
-
+    "-knn": default: False. Description: If **True**, use a hard threshold to restrict the number of neighbors to n_neighbors, that is, 
+                                        consider a knn graph. Otherwise, use a Gaussian Kernel to assign low weights to neighbors more 
+                                        distant than the n_neighbors nearest neighbor.
+    
     "-n_neighbors": default: 15. Description: The size of local neighborhood (in terms of number of neighboring data points) used 
                                     for manifold approximation. Larger values result in more global views of the manifold, while 
                                     smaller values result in more local data being preserved. In general values should be in the 
