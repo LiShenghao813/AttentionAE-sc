@@ -20,6 +20,19 @@ numpy --- 1.19.5
 
 leidenalg --- 0.8.10
 
+## file Description
+
+["loss"](https://github.com/LiShenghao813/AttentionAE-sc/blob/main/loss.py): NB-based or ZINB-based loss fuction and refer to ["scDeepCluster"](https://github.com/ttgump/scDeepCluster)
+
+["model"](https://github.com/LiShenghao813/AttentionAE-sc/blob/main/model.py): Containing model framwork of AttentionAE-sc and the framwork the GNN module, Attention module.
+
+["preprocessing_h5.py"](https://github.com/LiShenghao813/AttentionAE-sc/blob/main/preprocessing_h5.py) and ["preprocessing_baron.py"](https://github.com/LiShenghao813/AttentionAE-sc/blob/main/preprocessing_baron.py): Preprocessing fuction for different format.
+
+["run_AttentionAE-sc.py"](https://github.com/LiShenghao813/AttentionAE-sc/blob/main/run_AttentionAE-sc.py): To perform model training and clustering analysis.
+
+["train.py"](https://github.com/LiShenghao813/AttentionAE-sc/blob/main/train.py): Containing the train and clustering fuction.
+
+["utils.py"](https://github.com/LiShenghao813/AttentionAE-sc/blob/main/utils.py): Containing some data processing, cell-cell graph construction, and visualization utilities.
 
 ## Data Source
 The preprocessing of two kinds of [datasets (.h5, .csv)](https://github.com/LiShenghao813/AttentionAE-sc/tree/main/Data) is provided by the ["preprocessing_h5.py"](https://github.com/LiShenghao813/AttentionAE-sc/blob/main/preprocessing_h5.py) and ["preprocessing_baron.py"](https://github.com/LiShenghao813/AttentionAE-sc/blob/main/preprocessing_baron.py). Then, the corresponding ".h5ad" files are output in the ["./Data/AnnData"](https://github.com/LiShenghao813/AttentionAE-sc/tree/main/Data/AnnData), where is the default for model input. If you want to analzye another scRNA-seq datasets, please copy your ".h5ad" files to here and set "-name" to the file name.
