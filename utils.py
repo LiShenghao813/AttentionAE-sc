@@ -47,7 +47,7 @@ def load_data(dataPath, args, metric='cosine',
     scanpy.pp.normalize_per_cell(adata, counts_per_cell_after=1e4)
     adata.obs['size_factors'] = adata.obs.n_counts / np.median(adata.obs.n_counts)
     scanpy.pp.log1p(adata)
-    scanpy.pp.highly_variable_genes(adata, n_top_genes=2500)
+    scanpy.pp.highly_variable_genes(adata, n_top_genes=args.n_hvg)
     adata.raw.var['highly_variable'] = adata.var['highly_variable']
     adata = adata[:, adata.var['highly_variable']]
     dataMat = adata.X
