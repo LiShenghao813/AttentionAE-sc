@@ -63,7 +63,14 @@ def load_data(dataPath, args, metric='cosine',
                            n_neighbors = args.n_neighbors, metric=metric)
     return adata, rawData, dataMat, adj, r_adj
    
-
+def sparse_mx_to_torch_sparse_tensor(sparse_mx):
+    """Convert a scipy sparse matrix to a torch sparse tensor."""
+    sparse_mx = sparse_mx.tocoo().astype(np.float32)
+    indices = torch.from_numpy(
+        np.vstack((sparse_mx.row, sparse_mx.col)).astype(np.int64))
+    values = torch.from_numpy(sparse_mx.data)
+    shape = torch.Size(sparse_mx.shape)
+    return torch.sparse.FloatTensor(indices, values, shape)
 
 # using Leiden algorithm to initialize the clustering centers.
 def use_Leiden(features, resolution=1):
