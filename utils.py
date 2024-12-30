@@ -38,12 +38,14 @@ def adata_knn(adata, method, knn, n_neighbors, metric='cosine'):
 # To load gene expression data file into the (pre-)train function.
 def load_data(dataPath, args, metric='cosine', 
               dropout=0, preprocessing_sc=True):
-    adata = ad.read(dataPath + '.h5ad')    
+    adata = ad.read(dataPath + '.h5ad')
+    adata.X = adata.X.astype(np.float32)
+    adata.X = np.num_to_num(adata.X.toarray())
     scanpy.pp.filter_cells(adata, min_genes=1)
     scanpy.pp.filter_genes(adata, min_cells=1)
     adata.raw = adata
     # print(adata)
-    adata.X = adata.X.astype(np.float32)
+    
     scanpy.pp.normalize_per_cell(adata, counts_per_cell_after=1e4)
     adata.obs['size_factors'] = adata.obs.n_counts / np.median(adata.obs.n_counts)
     scanpy.pp.log1p(adata)
