@@ -26,7 +26,14 @@ def train(init_model, Zscore_data, rawData, adj, r_adj, size_factor, device, arg
     sf = torch.autograd.Variable((torch.from_numpy(size_factor[:,None]).type(torch.FloatTensor)).to(device),
                            requires_grad=True)
     optimizer = torch.optim.Adam(init_model.parameters(), lr=args.lr)
-    adj = torch.Tensor(adj).to(device)
+    
+    if type(adj) ==scipy.sparse._csr.csr_matrix:
+        adj = utils.sparse_mx_to_torch_sparse_tensor(adj).to(device)
+        r_adj = torch.Tensor(r_adj.toarray()).to(device)
+    else:
+        adj = torch.Tensor(adj).to(device)
+        r_adj = torch.Tensor(r_adj).to(device)
+        
     scheduler = lr_scheduler.StepLR(optimizer, step_size=40, gamma=0.5, last_epoch=-1)
     best_model = init_model
     loss_update = 100000
@@ -34,7 +41,7 @@ def train(init_model, Zscore_data, rawData, adj, r_adj, size_factor, device, arg
         z, A_pred, pi, mean, disp = init_model(data, adj)
         l = ZINBLoss(theta_shape=(args.n_input,))
         zinb_loss = l(mean * sf, pi, target=torch.tensor(rawData).to(device), theta=disp)
-        re_graphloss = torch.nn.functional.mse_loss(A_pred.view(-1), torch.Tensor(r_adj).to(device).view(-1))
+        re_graphloss = torch.nn.functional.mse_loss(A_pred.view(-1), r_adj.view(-1))
         loss = zinb_loss + 0.1*re_graphloss
         
         if (epoch+1) % 10   == 0:
@@ -81,7 +88,13 @@ def clustering(pretrain_model, Zscore_data, rawData, celltype, adj, r_adj, size_
     start_mem = torch.cuda.max_memory_allocated(device=device)
     
     data = torch.Tensor(Zscore_data).to(device)
-    adj = torch.Tensor(adj).to(device)
+    if type(adj) ==scipy.sparse._csr.csr_matrix:
+        adj = utils.sparse_mx_to_torch_sparse_tensor(adj).to(device)
+        r_adj = torch.Tensor(r_adj.toarray()).to(device)
+    else:
+        adj = torch.Tensor(adj).to(device)
+        r_adj = torch.Tensor(r_adj).to(device)
+        
     model = pretrain_model.to(device)
     sf = torch.autograd.Variable((torch.from_numpy(size_factor[:,None]).type(torch.FloatTensor)).to(device),
                           requires_grad=True)
@@ -110,7 +123,7 @@ def clustering(pretrain_model, Zscore_data, rawData, celltype, adj, r_adj, size_
         kl_loss, ae_p = loss_func(z, cluster_layer)
         l = ZINBLoss(theta_shape=(args.n_input,))
         zinb_loss = l(mean * sf, pi, target=torch.tensor(rawData).to(device), theta=disp)
-        re_graphloss = torch.nn.functional.mse_loss(A_pred.view(-1), torch.Tensor(r_adj).to(device).view(-1))
+        re_graphloss = torch.nn.functional.mse_loss(A_pred.view(-1), r_adj.to(device).view(-1))
         loss = kl_loss + 0.1 * zinb_loss + 0.01*re_graphloss
         loss.requires_grad_(True)
         label = utils.dist_2_label(ae_p)
