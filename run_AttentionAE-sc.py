@@ -101,7 +101,10 @@ if __name__ == "__main__":
         else:
             print("Final ASW %.3f, DB %.3f"% (asw, db))
         data = torch.Tensor(Zscore_data).to(device)
-        adj = torch.Tensor(adj).to(device)
+        if type(adj) == scipy.sparse._csr.csr_matrix:
+            adj = utils.sparse_mx_to_torch_sparse_tnsor(adj).to(device)
+        else:
+            adj = torch.Tensor(adj).cpu()
         with torch.no_grad():
             z, _, _, _, _  = model(data,adj)
             if args.save_umap is True:
@@ -160,7 +163,11 @@ if __name__ == "__main__":
         copy_model.load_state_dict(model.state_dict())
         
         data = torch.Tensor(Zscore_data).cpu()
-        adj = torch.Tensor(adj).cpu()
+        if type(adj) == scipy.sparse._csr.csr_matrix:
+            adj = utils.sparse_mx_to_torch_sparse_tnsor(adj).to(device)
+        else:
+            adj = torch.Tensor(adj).cpu()
+            
         with torch.no_grad():
             z, _, _, _, _  = copy_model(data,adj)
             _, p = loss_func(z, cluster_layer.cpu())
